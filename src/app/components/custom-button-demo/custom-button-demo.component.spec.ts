@@ -3,6 +3,8 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserDynamicTestingModule } from '@angular/platform-browser-dynamic/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
 import { FlexLayoutModule } from '@angular/flex-layout';
 import '../../../../node_modules/hammerjs/hammer.js';
 import { CustomMaterialModule } from '../../modules/custom-material.module';
@@ -17,7 +19,7 @@ describe('CustomButtonDemoComponent', () => {
 		TestBed.configureTestingModule({
 			declarations: [ CustomButtonDemoComponent ],
 			imports: [
-				BrowserDynamicTestingModule, NoopAnimationsModule, CustomMaterialModule, FlexLayoutModule
+				BrowserDynamicTestingModule, NoopAnimationsModule, FormsModule, ReactiveFormsModule, CustomMaterialModule, FlexLayoutModule
 			],
 			providers: [
 				{ provide: 'Window', useValue: window },
