@@ -4,10 +4,6 @@ import { MatSidenav } from '@angular/material';
 
 import { EventEmitterService } from '../../services/event-emitter/event-emitter.service';
 
-import { Subject } from 'rxjs/Subject';
-import 'rxjs/add/operator/takeUntil';
-import 'rxjs/add/operator/first';
-
 @Component({
 	selector: 'app-root',
 	templateUrl: './app.component.html',
@@ -25,7 +21,7 @@ export class AppComponent implements OnInit, OnDestroy {
 		// console.log('AppComponent, element ref', this.el);
 	}
 
-	private ngUnsubscribe: Subject<void> = new Subject();
+	private subscriptions: any[] = [];
 
 	public title: string = 'Components library';
 
@@ -63,7 +59,7 @@ export class AppComponent implements OnInit, OnDestroy {
 	 * component lifecycle
 	 */
 	public ngOnInit(): void {
-		this.emitter.getEmitter().takeUntil(this.ngUnsubscribe).subscribe((event: any) => {
+		let sub = this.emitter.getEmitter().subscribe((event: any) => {
 			console.log('AppComponent, event emitter subscription', event);
 			if (event.spinner) {
 				if (event.spinner === 'start') {
@@ -73,25 +69,31 @@ export class AppComponent implements OnInit, OnDestroy {
 				}
 			}
 		});
+		this.subscriptions.push(sub);
 
-		this.router.events.takeUntil(this.ngUnsubscribe).subscribe((event: any) => {
+		sub = this.router.events.subscribe((event: any) => {
 			// console.log('AppComponent, router events subscription:', event);
 			if (event instanceof ResolveEnd) {
 				console.log('AppComponent, router events subscription, resolve end', event);
 			}
 		});
+		this.subscriptions.push(sub);
 
 		/*
 		*	subscribe to query params changes and switch display mode
 		*/
-		this.route.queryParamMap.takeUntil(this.ngUnsubscribe).subscribe((queryParams: Params) => {
+		sub = this.route.queryParamMap.subscribe((queryParams: Params) => {
 			if (typeof queryParams.get('demo') === 'string') {
 				this.selectedItem = queryParams.get('demo') || '';
 			}
 		});
+		this.subscriptions.push(sub);
 	}
 	public ngOnDestroy(): void {
-		this.ngUnsubscribe.next();
-		this.ngUnsubscribe.complete();
+		if (this.subscriptions.length) {
+			for (const sub of this.subscriptions) {
+				sub.unsubscribe();
+			}
+		}
 	}
 }

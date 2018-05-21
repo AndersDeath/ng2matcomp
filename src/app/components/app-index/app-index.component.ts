@@ -3,10 +3,6 @@ import { ActivatedRoute, Params } from '@angular/router';
 
 import { EventEmitterService } from '../../services/event-emitter/event-emitter.service';
 
-import { Subject } from 'rxjs/Subject';
-import 'rxjs/add/operator/takeUntil';
-import 'rxjs/add/operator/first';
-
 @Component({
 	selector: 'app-index',
 	templateUrl: './app-index.component.html',
@@ -23,7 +19,7 @@ export class AppIndexComponent implements OnInit, OnDestroy {
 		// console.log('AppIndexComponent, element ref', this.el);
 	}
 
-	private ngUnsubscribe: Subject<void> = new Subject();
+	private subscriptions: any[] = [];
 
 	public title: string = 'Components library directory';
 
@@ -36,14 +32,15 @@ export class AppIndexComponent implements OnInit, OnDestroy {
 	 * component lifecycle
 	 */
 	public ngOnInit(): void {
-		this.emitter.getEmitter().takeUntil(this.ngUnsubscribe).subscribe((event: any) => {
+		let sub = this.emitter.getEmitter().subscribe((event: any) => {
 			console.log('AppIndexComponent, event emitter subscription', event);
 		});
+		this.subscriptions.push(sub);
 
 		/*
 		*	subscribe to query params changes and switch display mode
 		*/
-		this.route.queryParamMap.takeUntil(this.ngUnsubscribe).subscribe((queryParams: Params) => {
+		sub = this.route.queryParamMap.subscribe((queryParams: Params) => {
 			let selectedItem: string = queryParams.get('demo');
 			// console.log('selectedItem', selectedItem)
 			if (!selectedItem) {
@@ -54,9 +51,13 @@ export class AppIndexComponent implements OnInit, OnDestroy {
 				this.demo[key] = (key === selectedItem) ? true : false;
 			}
 		});
+		this.subscriptions.push(sub);
 	}
 	public ngOnDestroy(): void {
-		this.ngUnsubscribe.next();
-		this.ngUnsubscribe.complete();
+		if (this.subscriptions.length) {
+			for (const sub of this.subscriptions) {
+				sub.unsubscribe();
+			}
+		}
 	}
 }
